@@ -1,5 +1,5 @@
-const express = require('express');
-const app = express();
+// const express = require('express');
+// const app = express();
 
 // app.use('/test', (req, res) => {
 //     res.send("Test page")
@@ -55,29 +55,60 @@ const app = express();
 
 // Error Handling
 
-app.use('/', (err, req, res, next) => {
-    if(err){
-        // Log Your error Message
-        res.status(500).send("Something Went Wrong!")
-    }
-})
+// app.use('/', (err, req, res, next) => {
+//     if(err){
+//         // Log Your error Message
+//         res.status(500).send("Something Went Wrong!")
+//     }
+// })
 
-app.get("/user", (req, res) => {
+// app.get("/user", (req, res) => {
     
-    try{
-        //Logic of DB Call & Get User Data
+//     try{
+//         //Logic of DB Call & Get User Data
 
-        throw new Error("dbbshhss");
-        res.send("User Data Sent")
-    }catch(err){
-        res.status(500).send("some Error contact support team")
-    }
+//         throw new Error("dbbshhss");
+//         res.send("User Data Sent")
+//     }catch(err){
+//         res.status(500).send("some Error contact support team")
+//     }
    
+// })
+
+
+//  Connecting Node with database(Mongoose)
+const express = require('express');
+const connectDB = require('./config/database');
+const Test = require('./models/user')
+const app = express();
+
+app.post('/signup', async (req, res) => {
+    const test = new Test({
+        firstName: "vikash",
+        lastName: "khowal",
+        email: "khowal123@gmail.com",
+        password: "vikash123"
+    })
+    try{
+        await test.save();
+        res.send("Data Sent Successfully !")
+    }
+    catch(err) {
+        console.log(err)
+        res.status(400).send("Error Occured :" + err.message)
+    }
+
 })
 
-
-
-
-app.listen(5555, () => {
-    console.log("Server is running on port 5555")
-})
+connectDB()
+    .then(() => {
+        console.log("Database Connection Established!!")
+        app.listen(5555, () => {
+            console.log("Server is running on port 5555")
+        })
+    })
+    .catch((err) => 
+        {
+            console.error("DataBase Connection Failed!" + err.message)
+        }
+    )
