@@ -82,13 +82,18 @@ const connectDB = require('./config/database');
 const Test = require('./models/user')
 const app = express();
 
+app.use(express.json())
+
 app.post('/signup', async (req, res) => {
-    const test = new Test({
-        firstName: "vikash",
-        lastName: "khowal",
-        email: "khowal123@gmail.com",
-        password: "vikash123"
-    })
+    console.log(req.body)
+    const test = new Test(req.body
+        // {
+        // firstName: "vikash",
+        // lastName: "khowal",
+        // email: "khowal123@gmail.com",
+        // password: "vikash123"
+    // }
+)
     try{
         await test.save();
         res.send("Data Sent Successfully !")
