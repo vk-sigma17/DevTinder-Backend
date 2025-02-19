@@ -33,23 +33,47 @@ const app = express();
 // }
 // )
 
-const { adminAuth, userAuth } = require('./middleware/auth');
+// Auth Middleware
 
-// app.use('/admin', adminAuth);
+// const { adminAuth, userAuth } = require('./middleware/auth');
 
-app.get('/user', userAuth, (req, res) => {
-    res.send("User Data Send")
+// // app.use('/admin', adminAuth);
+
+// app.get('/user', userAuth, (req, res) => {
+//     res.send("User Data Send")
+// })
+
+
+// app.get('/admin/getAllData', (req, res) => {
+//     res.send("All Data Send!")
+// })
+
+// app.get('/admin/deleteAllData', (req, res) => {
+//     res.send("All Data Deleted!")
+// })
+
+
+// Error Handling
+
+app.use('/', (err, req, res, next) => {
+    if(err){
+        // Log Your error Message
+        res.status(500).send("Something Went Wrong!")
+    }
 })
 
+app.get("/user", (req, res) => {
+    
+    try{
+        //Logic of DB Call & Get User Data
 
-app.get('/admin/getAllData', (req, res) => {
-    res.send("All Data Send!")
+        throw new Error("dbbshhss");
+        res.send("User Data Sent")
+    }catch(err){
+        res.status(500).send("some Error contact support team")
+    }
+   
 })
-
-app.get('/admin/deleteAllData', (req, res) => {
-    res.send("All Data Deleted!")
-})
-
 
 
 
