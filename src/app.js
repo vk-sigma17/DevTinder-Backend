@@ -84,8 +84,9 @@ const app = express();
 
 app.use(express.json())
 
+// ADD Document to collection
 app.post('/signup', async (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     const test = new Test(req.body
         // {
         // firstName: "vikash",
@@ -104,6 +105,73 @@ app.post('/signup', async (req, res) => {
     }
 
 })
+
+
+
+    //user API to find the single user by by email
+    app.get('/userTest', async(req, res) => {
+        const userEmail = req.body.email;
+        console.log(userEmail);
+        try{
+            // const users = await User.find({emailId: userEmail});
+            const users = await Test.findOne({email: userEmail});
+           if(users.length === 0){
+            res.status(404).send("User Not Found!")
+           }else{
+    
+               res.send(users);
+           }
+        }
+        catch(err){
+            res.status(400).send("Something Went Wrong")
+        }
+    
+    }) 
+    //user API to find the All user 
+    app.get('/userAll', async(req, res) => {
+        
+        try{
+            // const users = await User.find({emailId: userEmail});
+            const users = await Test.find({});
+           if(users.length === 0){
+            res.status(404).send("User Not Found!")
+           }else{
+    
+               res.send(users);
+           }
+        }
+        catch(err){
+            res.status(400).send("Something Went Wrong")
+        }
+    
+    }) 
+   
+    // //delete user API - deleting a user by its id
+    app.delete('/deleteUser', async (req, res) => {
+        const userId = req.body._id;
+        console.log(userId)
+        const deletedUser = await Test.findByIdAndDelete({_id: userId});
+        try{
+            console.log("One User Deleteed!")
+             res.send(deletedUser)
+        }
+        catch(err){
+            console.error("something Went wrong!!")
+        }
+    })
+    // patch user API - updating the data of user
+    app.patch('/updateUser', async (req, res) => {
+        const userID = req.body._id;
+        const data = req.body;
+
+        const updateUser = await Test.findByIdAndUpdate({_id: userID}, data);
+        try{
+            res.send("user Updated Successfully!")
+        }catch(err){
+            res.status(400).send("Something went wrong!!")
+        }
+
+    })
 
 connectDB()
     .then(() => {
