@@ -164,8 +164,11 @@ app.post('/signup', async (req, res) => {
         const userID = req.body._id;
         const data = req.body;
 
-        const updateUser = await Test.findByIdAndUpdate({_id: userID}, data);
         try{
+            const updateUser = await Test.findByIdAndUpdate({_id: userID}, data, {runValidators: true});
+            if (!updateUser) {
+                return res.status(404).send("User not found!");
+              }
             res.send("user Updated Successfully!")
         }catch(err){
             res.status(400).send("Something went wrong!!")
