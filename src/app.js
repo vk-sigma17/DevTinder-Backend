@@ -80,22 +80,41 @@
 const express = require('express');
 const connectDB = require('./config/database');
 const Test = require('./models/user')
+const { signupValidationData } = require('./utils/validation.js')
+const bcrypt = require('bcrypt');
 const app = express();
 
 app.use(express.json())
 
 // ADD Document to collection
 app.post('/signup', async (req, res) => {
-    // console.log(req.body)
-    const test = new Test(req.body
-        // {
-        // firstName: "vikash",
-        // lastName: "khowal",
-        // email: "khowal123@gmail.com",
-        // password: "vikash123"
-    // }
-)
+
     try{
+        //Validation of Data
+        signupValidationData(req)
+    
+        const { firstName, lastName, email, password, gender, age } = req.body;
+    
+        // hashing of password
+        const hashedPassword = await bcrypt.hash(password, 10);
+    
+        // console.log(req.body)
+        const test = new Test(
+            // req.body
+    
+            // OR
+    
+            // {
+            // firstName: "vikash",
+            // lastName: "khowal",
+            // email: "khowal123@gmail.com",
+            // password: "vikash123"
+        // }
+    
+            // OR
+            {firstName, lastName, email, password: hashedPassword, gender, age } 
+    
+    )
         await test.save();
         res.send("Data Sent Successfully !")
     }
@@ -106,6 +125,28 @@ app.post('/signup', async (req, res) => {
 
 })
 
+//  LogIn API
+app.post('/login', (req, res) => {
+    try{
+
+        const { email, password } = req.body;
+    
+        const user = Test.findOne({email: email});
+        if(!user){
+            throw new Error("Invalid Credentials");
+        }
+        const isPasswordValid = bcrypt.compare(password, user.password)
+        if(isPasswordValid){
+            res.send("Account Login Successfully!!")
+        }
+        else{
+            throw new Error("Invalid Credentials");
+        }
+    }
+    catch(err){
+        res.status(400).send(`ERROR: ${err.message}`)
+    }
+})
 
 
     //user API to find the single user by by email
@@ -160,15 +201,36 @@ app.post('/signup', async (req, res) => {
         }
     })
     // patch user API - updating the data of user
-    app.patch('/updateUser', async (req, res) => {
-        const userID = req.body._id;
+    app.patch('/updateUser/:userId', async (req, res) => {
+        // const userID = req.body._id;
+        const userID = req.params?.userId;
         const data = req.body;
 
         try{
+            const ALLOWED_UPDATES = [
+                "photoURL",
+                "about",
+                "gender",
+                "skills",
+                "firstName",
+                "lastName",
+                "age"
+            ];
+            const isUpdateAllowed = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
+
+            if(!isUpdateAllowed){
+                throw new Error("update not allowed");
+            }
+
+            if(data?.skills.length > 10){
+              throw new Error("Skills Cannot be more than 10");
+          }
             const updateUser = await Test.findByIdAndUpdate({_id: userID}, data, {runValidators: true});
-            if (!updateUser) {
-                return res.status(404).send("User not found!");
-              }
+            
+            // if (!updateUser) {
+            //     return res.status(404).send("User not found!");
+            //   }
+    
             res.send("user Updated Successfully!")
         }catch(err){
             res.status(400).send("Something went wrong!!")
