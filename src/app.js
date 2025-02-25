@@ -82,9 +82,13 @@ const connectDB = require('./config/database');
 const Test = require('./models/user')
 const { signupValidationData } = require('./utils/validation.js')
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+var jwt = require('jsonwebtoken');
+
 const app = express();
 
 app.use(express.json())
+app.use(cookieParser())
 
 // ADD Document to collection
 app.post('/signup', async (req, res) => {
@@ -126,17 +130,21 @@ app.post('/signup', async (req, res) => {
 })
 
 //  LogIn API
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     try{
 
         const { email, password } = req.body;
     
-        const user = Test.findOne({email: email});
+        const user = await Test.findOne({email: email});
         if(!user){
             throw new Error("Invalid Credentials");
         }
-        const isPasswordValid = bcrypt.compare(password, user.password)
+        const isPasswordValid = await bcrypt.compare(password, user.password)
         if(isPasswordValid){
+            // Create Jwt Token
+            const token = jwt.sign({_id: user._id}, 'dev@Tinder344')
+            res.cookie('token', token);
+            console.log(token)
             res.send("Account Login Successfully!!")
         }
         else{
@@ -148,6 +156,31 @@ app.post('/login', (req, res) => {
     }
 })
 
+// Get Profile all Details based on Jwt
+app.get('/profile', async(req, res) => {
+    try{
+        const cookie = req.cookies;
+        const { token } = cookie;
+        if(!token){
+            throw new Error("Invalid Token!");
+            
+        }
+        console.log("ABC :",token);
+
+        const decodedCode = await jwt.verify(token, 'dev@Tinder344')
+        console.log("DeF:", decodedCode);
+        const {_id} = decodedCode;
+        const getUser = await Test.findById(_id)
+        if(!getUser){
+            throw new Error("No User Found")
+        }
+        console.log("User: ", getUser);
+        res.send(getUser)
+    }
+    catch(err){
+        res.status(400).send(`ERROR: ${err.message}`)
+    }
+})
 
     //user API to find the single user by by email
     app.get('/userTest', async(req, res) => {
